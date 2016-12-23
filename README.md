@@ -20,6 +20,8 @@ I got tired of running these utilities manually and decided to just script every
 
 6. [Changing Defaults](#change-defaults-advanced)
 
+7. [Executing Custom/3rd-party Scripts](#executing-3rd-party-custom-scripts)
+
 7. [Pack Integrity](#integrity)
 
 8. [License](#license)
@@ -32,15 +34,17 @@ I got tired of running these utilities manually and decided to just script every
 
 0. FIRST THINGS FIRST: If there are pending Windows updates, reboot the machine and allow them to install. This isn't *required* but is strongly recommended.
 
-1. [Boot into Safe Mode with Network Support](#safe-mode). If you skip this step Tron will prompt you to automatically reboot into Safe Mode. NOTE: Sometimes Tron works better in Normal mode, and sometimes Safe Mode. You don't *have* to run Tron in Safe Mode, but in general it seems to have better results that way which is why it's generally recommended.
+1. [Download Tron](https://www.reddit.com/r/TronScript/). The download links are in the top post in /r/TronScript. If you download the self-extracting `.exe`, run it, let it extract `tron.bat` and the `\resources` folder, then place them on the **Desktop** of target machine.
 
-2. Copy `tron.bat` and the `\resources` folder to the Desktop of target machine and run `tron.bat` as an **ADMINISTRATOR** 
+2. [Boot into Safe Mode with Network Support](#safe-mode). If you skip this step Tron will prompt you to automatically reboot into Safe Mode. NOTE: Sometimes Tron works better in Normal mode, and sometimes Safe Mode. You don't *have* to run Tron in Safe Mode, though it generally seems to be more effective that way.
 
-3. Wait anywhere from **3-10 hours** (yes, it really takes that long; no, do **not** cancel it in the middle of it running)
+3. Run `tron.bat` as an **ADMINISTRATOR**
+
+4. Wait anywhere from **3-10 hours** (yes, it really takes that long; no, do **not** cancel it in the middle of it running)
 
   *Note: You'll need to manually click "scan" in the MBAM window that appears part of the way through Stage 3: Disinfect. Tron will continue in the background with its other tasks while waiting for you though, so the script won't stall if you're not around to hit "scan" immediately.*
 
-4. **Reboot**
+5. **Reboot!** Reboot the system before doing *anything else*.
 
 By default the master log file is at `C:\Logs\tron\tron.log`. If you want to change this, read the section on changing defaults below.
 
@@ -53,8 +57,8 @@ Depending how badly the system is infected, it could take anywhere from 3 to 10 
 
 Command-line use is fully supported. All flags are optional and can be used simultaneously. *
 
-    tron.bat [-a -asu -c -d -dev -e -er -m -o -p -r -sa -sb -sd -sdc -sdu -se -sfr
-              -sk -sm -sp -spr -srr -ss -str -sw -udl -v -x] | [-h]
+    tron.bat [-a -asu -c -d -dev -e -er -m -o -p -r -sa -sb -sd -sdc -sdu -se
+              -sk -sm -sp -spr -ss -str -sw -udl -v -x] | [-h]
 
     Optional flags (can be combined):
 
@@ -92,8 +96,6 @@ Command-line use is fully supported. All flags are optional and can be used simu
 
      -se  Skip Event Log backup and clear (don't clear Windows Event Logs)
 
-     -sfr Skip filesystem permissions reset (saves time if you're in a hurry)
-
      -sk  Skip Kaspersky Virus Rescue Tool (KVRT) scan
 
      -sm  Skip Malwarebytes Anti-Malware (MBAM) installation
@@ -101,8 +103,6 @@ Command-line use is fully supported. All flags are optional and can be used simu
      -sp  Skip patches (do not patch 7-Zip, Java Runtime, Adobe Flash or Reader)
 
      -spr Skip page file reset (don't set to "Let Windows manage the page file")
-
-     -srr Skip registry permissions reset (saves time if you're in a hurry)
 
      -ss  Skip Sophos Anti-Virus (SAV) scan
 
@@ -121,12 +121,14 @@ Command-line use is fully supported. All flags are optional and can be used simu
      -h   Display help text
 
 
-\* There is no -UPM flag
+\* There is probably no -UPM flag
 
 
 # SCRIPT INTERRUPTION
 
 If the script is interrupted e.g. from a crash or a forced reboot (often encountered during stage_2_de-bloat), it will attempt to resume from the last stage successfully started. Tron accomplishes this by creating a `RunOnce` registry key for the current user at the beginning of Stage 0 (e.g. when jobs start executing), and deleting it at the end of the script if everything finished without interruption.
+
+It will also re-use any previously-used command-line switches when it starts back up.
 
 More details about this function can be found in the [list of all actions Tron performs](#full-tron-description) at the bottom of this document.
 
@@ -320,6 +322,26 @@ If you don't want to use the command-line and don't like Tron's defaults, you ca
 * There is no `-UPM` flag
 
 
+# EXECUTING 3RD-PARTY CUSTOM SCRIPTS:
+
+Tron supports executing custom scripts just prior to the end-screen.
+
+Place any batch files you want to execute just prior to Tron completion in this folder: `\tron\resources\stage_8_custom_scripts`
+
+Custom scripts work like so:
+
+ - If there are any `.bat` files in the `\stage_8_custom_scripts` folder, Tron will execute each one sequentially by name. When they're done, it will finish cleanup and end the script as normal
+
+ - If there are no `.bat` files in the `\stage_8_custom_scripts` folder, Stage 8 will be silently skipped
+ 
+ - Supporting files may be placed in the folder, for example any files required by the custom scripts, but Tron will ignore anything that isn't a `.bat` file
+ 
+ - If you want to use supporting batch files but don't want Tron executing them, use the `.cmd` file extension instead of .bat and Tron will ignore them
+ 
+ - It is the users responsibility what their scripts do. I will provide no support for custom scripts other than having Tron attempt to run them
+
+
+
 # INTEGRITY
 
 In each release, the file `\tron\integrity_verification\checksums.txt` contains SHA-256 hashes of *every* file included in Tron, and is signed with [my PGP key](http://pool.sks-keyservers.net:11371/pks/lookup?op=get&search=0x07D1490F82A211A2) (`0x07d1490f82a211a2`, included). You can use it to verify package integrity.
@@ -341,7 +363,7 @@ Hope this is helpful to other PC techs,
 If you feel overly charitable, bitcoin donations are accepted at this address:
 
 ```
-1LSJ9qDzuHyRx6FfbUmHVSii4sLU3sx2TF
+1FeJmtRUEqkC2Uh8q84Ycb4tramEyg5Hb3
 ```
 
 
@@ -578,7 +600,13 @@ Tron updates these programs if they exist on the system. If a program does not e
 
 4. **upload debug logs**: Upload 'tron.log' and the system GUID dump (list of all installed program GUIDs) to the Tron developer (vocatus). Please use this option if possible, log files are extremely helpful in developing Tron! NOTE: `tron.log` can contain personal information like names of files on the system, the computer name, user name, etc, so if you're concerned about this please look through a Tron log first to understand what will be sent. I don't care what files are on random systems on the Internet, but just something to be aware of
 
-## STAGE 8: Manual tools
+## STAGE 8: Custom Scripts
+
+*stage-specific code is in [tron.bat](https://github.com/bmrf/tron/blob/master/tron.bat)*
+
+1. **Execute custom scripts**: Tron will execute any `.bat` files placed in the `\tron\resources\stage_8_custom_scripts` directory. See [Executing Custom/3rd-party Scripts](#executing-3rd-party-custom-scripts) above for more information
+
+## STAGE 9: Manual tools
 
 Tron does not run these automatically because most do not support command-line use, or are only useful in special cases.
 
