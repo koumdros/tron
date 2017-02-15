@@ -22,13 +22,15 @@ I got tired of running these utilities manually and decided to just script every
 
 7. [Executing Custom/3rd-party Scripts](#executing-3rd-party-custom-scripts)
 
-7. [Pack Integrity](#integrity)
+8. [Executing bundled WSUS Offline updates](#executing-bundled-wsus-offline-updates)
 
-8. [License](#license)
+9. [Pack Integrity](#integrity)
 
-9. [Contact Info](#other)
+10. [License](#license)
 
-10. [Full description of ALL actions](#full-tron-description)
+11. [Contact Info](#other)
+
+12. [Full description of ALL actions](#full-tron-description)
 
 # USE
 
@@ -57,8 +59,8 @@ Depending how badly the system is infected, it could take anywhere from 3 to 10 
 
 Command-line use is fully supported. All flags are optional and can be used simultaneously. *
 
-    tron.bat [-a -asu -c -d -dev -e -er -m -o -p -r -sa -sb -sd -sdc -sdu -se
-              -sk -sm -sp -spr -ss -str -sw -udl -v -x] | [-h]
+    tron.bat [-a -c -d -dev -e -er -m -o -p -r -sa -sap -scs -sdb -sd -sdc -sdu
+              -se -sk -sm -spr -ss -str -swo -swu -udl -v -x] | [-h]
 
     Optional flags (can be combined):
 
@@ -86,6 +88,10 @@ Command-line use is fully supported. All flags are optional and can be used simu
 
      -sa  Skip ALL anti-virus scans (KVRT, MBAM, SAV)
 
+     -sap Skip application patches (don't patch Java Runtime, Adobe Flash or Reader)
+
+     -scs Skip custom scripts (has no effect if you haven't supplied custom scripts)
+
      -sdb Skip de-bloat (OEM bloatware removal; implies -m)
 
      -sd  Skip defrag (force Tron to ALWAYS skip Stage 5 defrag)
@@ -100,15 +106,15 @@ Command-line use is fully supported. All flags are optional and can be used simu
 
      -sm  Skip Malwarebytes Anti-Malware (MBAM) installation
 
-     -sp  Skip patches (do not patch 7-Zip, Java Runtime, Adobe Flash or Reader)
-
      -spr Skip page file reset (don't set to "Let Windows manage the page file")
 
      -ss  Skip Sophos Anti-Virus (SAV) scan
 
      -str Skip Telemetry Removal (just turn telemetry off instead of removing it)
 
-     -sw  Skip Windows Updates (do not attempt to run Windows Update)
+     -swu Skip Windows Updates entirely (ignore both WSUS Offline and online methods)
+
+     -swo Skip only bundled WSUS Offline updates (online updates still attempted)
      
      -udl Upload debug logs. Send tron.log and the system GUID dump to the Tron developer
 
@@ -121,7 +127,7 @@ Command-line use is fully supported. All flags are optional and can be used simu
      -h   Display help text
 
 
-\* There is probably no -UPM flag
+\* There is probably no -upm flag
 
 
 # SCRIPT INTERRUPTION
@@ -153,6 +159,8 @@ Keep in mind the username and password for the email account will be stored in P
 # CHANGE DEFAULTS (advanced)
 
 If you don't want to use the command-line and don't like Tron's defaults, you can change the following default variables. Keep in mind command-line flags will always override their respective default option when used.
+
+These settings are stored in: `\tron\resources\functions\tron_settings.bat`
 
 - To change the master directory where all of Tron's output goes, edit this line:
   ```
@@ -229,9 +237,19 @@ If you don't want to use the command-line and don't like Tron's defaults, you ca
   set AUTO_REBOOT_DELAY=0
   ```
 
-- To skip anti-virus scan engines (MBAM, KVRT, Sophos), change this to `yes`:
+- To skip ALL anti-virus scan engines (MBAM, KVRT, Sophos), change this to `yes`:
   ```
   set SKIP_ANTIVIRUS_SCANS=no
+  ```
+   
+- To skip application patches (don't patch 7-Zip, Java, Adobe Flash and Reader) change this to `yes`:
+  ```
+  set SKIP_APP_PATCHES=no
+  ```
+
+- To skip custom scripts (stage 8) regardless whether or not `.bat` files are present in the `stage_8_custom_scripts` folder, change this to yes:
+  ```
+  set SKIP_CUSTOM_SCRIPTS=no
   ```
 
 - To skip OEM debloat, change this to `yes`:
@@ -239,7 +257,7 @@ If you don't want to use the command-line and don't like Tron's defaults, you ca
   set SKIP_DEBLOAT=no
   ```
 
-- To always skip defrag, regardless whether `C:\` is an SSD or not, change this to `yes`:
+- To always skip defrag (even on mechanical drives; Tron automatically skips SSD defragmentation), change this to yes:
   ```
   set SKIP_DEFRAG=no
   ```
@@ -259,11 +277,6 @@ If you don't want to use the command-line and don't like Tron's defaults, you ca
   set SKIP_EVENT_LOG_CLEAR=no
   ```
 
-- To prevent Tron from granting the SYSTEM and Administrator accounts full permissions to everything under the `%WinDir%` directory structure, change this to `yes`:
-  ```
-  set SKIP_FILEPERMS_RESET=no
-  ```
-
 - To skip scanning with Kaspersky Virus Rescue Tool (KVRT), change this to `yes`:
   ```
   set SKIP_KASPERSKY_SCAN=no
@@ -274,19 +287,9 @@ If you don't want to use the command-line and don't like Tron's defaults, you ca
   set SKIP_MBAM_INSTALL=no
   ```
 
-- To skip patches (don't patch 7-Zip, Java, Adobe Flash and Reader) change this to `yes`:
-  ```
-  set SKIP_PATCHES=no
-  ```
-
 - To prevent Tron from resetting the page file to Windows defaults, change this to `yes`:
   ```
   set SKIP_PAGEFILE_RESET=no
-  ```
-
-- To prevent Tron from granting the SYSTEM and Administrator accounts full permissions to the HKLM, HKCU, and HKCR hives, change this to `yes`:
-  ```
-  set SKIP_REGPERMS_RESET=no
   ```
 
 - To skip scanning with Sophos Anti-Virus (SAV), change this to `yes`:
@@ -299,7 +302,12 @@ If you don't want to use the command-line and don't like Tron's defaults, you ca
   set SKIP_TELEMETRY_REMOVAL=no
   ```
 
-- To skip Windows Updates (don't attempt to run Windows Update) change this to `yes`:
+- To skip only bundled WSUS Offline updates (online updates still attempted) change this to `yes`:
+  ```
+  set SKIP_WSUS_OFFLINE=no
+  ```
+
+- To skip Windows Updates entirely (ignore both WSUS Offline and online methods), change this to `yes`:
   ```
   set SKIP_WINDOWS_UPDATES=no
   ```
@@ -339,8 +347,26 @@ Custom scripts work like so:
  - If you want to use supporting batch files but don't want Tron executing them, use the `.cmd` file extension instead of .bat and Tron will ignore them
  
  - It is the users responsibility what their scripts do. I will provide no support for custom scripts other than having Tron attempt to run them
+ 
+ - Use the `-scs` flag or edit the file `\tron\resources\functions\tron_settings.bat` and set `SKIP_CUSTOM_SCRIPTS` to yes to direct Tron to ignore all custom scripts even if they are present. Can be useful if you have a set of scripts you only want to execute on certain systems and don't want to carry two copies of Tron around
 
+# EXECUTING BUNDLED WSUS OFFLINE UPDATES
 
+Tron supports using bundled WSUS Offline update packages over the traditional online update method.
+
+To add offline update packages to Tron:
+
+1. Download [WSUS Offline](http://download.wsusoffline.net/)
+
+2. Run it and have it download the updates you want
+
+3. Copy the `client` folder (usually at `\wsusoffline\client`) to `\tron\resources\stage_5_patch\wsus_offline\client\`
+
+4. Make sure that `Update.cmd` is present in this path: `\tron\resources\stage_5_patch\wsus_offline\client\Update.cmd`
+
+5. Run Tron, it should automatically detect and use the offline updates
+
+If for some reason you want to skip the bundled update package on a certain system, use the `-swo` switch or edit the file `\tron\resources\functions\tron_settings.bat` and set `SKIP_WSUS_OFFLINE` to yes, and Tron will use the regular online update method for that run.
 
 # INTEGRITY
 
@@ -354,7 +380,7 @@ Tron and any included subscripts and `.reg` files I've written are free to use/r
 
 # OTHER
 
-I try to keep everything updated. If you notice some of the packages are out of date, PM me on reddit or send me an email (listed above), I typically respond in a day or less.
+I try to respond to messages quickly. If you have a question, suggestion or problem, post it to the subreddit so everyone can get eyes on it. As a last resort you may email me directly.
 
 Hope this is helpful to other PC techs,
 
@@ -473,7 +499,7 @@ Master script that launches everything else. It performs many actions on its own
 
 3. **[BleachBit](http://bleachbit.sourceforge.net/)**: BleachBit utility. Used to clean temp files before running AV scanners
 
-4. **[TempFileCleanup.bat](https://github.com/bmrf/tron/blob/master/resources/stage_1_tempclean/stage_1_tempclean.bat)**: Script I wrote to clean some areas that other tools seem to miss
+4. **[TempFileCleanup.bat](https://github.com/bmrf/tron/blob/master/resources/stage_1_tempclean/tempfilecleanup/TempFileCleanup.bat)**: Script I wrote to clean some areas that other tools seem to miss
 
 5. **[USB Device Cleanup](http://www.uwe-sieber.de/drivetools_e.html#drivecleanup)**: Uninstalls unused or not present USB devices from the system (non-existent thumb drives, etc etc). Uses `drivecleanup.exe` from [Uwe Sieber](http://www.uwe-sieber.de/)
 
@@ -562,15 +588,15 @@ Master script that launches everything else. It performs many actions on its own
 
 Tron updates these programs if they exist on the system. If a program does not exist, it is skipped:
 
-1. **[7-Zip](http://7-zip.org/faq.html)**: Open-source compression and extraction tool. Far superior to just about everything (including the venerable WinRAR). Use the `-sp` switch to skip this action
+1. **[7-Zip](http://7-zip.org/faq.html)**: Open-source compression and extraction tool. Far superior to just about everything (including the venerable WinRAR). Use the `-sap` switch to skip this action
 
-2. **Adobe Flash Player**: Used by YouTube and various other sites. Use the `-sp` switch to skip this action
+2. **Adobe Flash Player**: Used by YouTube and various other sites. Use the `-sap` switch to skip this action
 
-3. **Adobe Reader**: Standard PDF reader. Use the `-sp` switch to skip this action
+3. **Adobe Reader**: Standard PDF reader. Use the `-sap` switch to skip this action
 
-4. **Java Runtime Environment**: I personally hate Java, but it is still widely used, so we at least get the system on the latest version. Use the `-sp` switch to skip this action
+4. **Java Runtime Environment**: I personally hate Java, but it is still widely used, so we at least get the system on the latest version. Use the `-sap` switch to skip this action
 
-5. **Windows updates**: Runs Windows update via this command:  `wuauclt /detectnow /updatenow`. Use the `-sw` switch to skip this action
+5. **Windows updates**: Runs Windows update via this command:  `wuauclt /detectnow /updatenow`. Use the `-swu` switch to skip this action. If bundled WSUS Offline updates are detected, Tron executes those instead. Use the `-swo` switch to force skipping WSUS Offline updates even if they're present in the relevant directory. See [Executing bundled WSUS Offline updates](#executing-bundled-wsus-offline-updates) above for more information on using offline update packages with Tron
 
 6. **DISM base reset**: Recompile the "Windows Image Store" (SxS store). This typically results in multiple GB's of space freed up. Windows 8 and up only. Any Windows Updates installed *prior* to this point will become "baked in" (uninstallable). Use the `-sdc` switch to skip this action
 
